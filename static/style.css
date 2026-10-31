@@ -1,0 +1,357 @@
+/* O céu é a identidade da página: a cor de fundo muda conforme o tempo
+   da cidade consultada (atributo data-tempo no <body>, definido pelo app.js).
+   Tudo o mais fica quieto: tipografia, linhas finas e uma cor de destaque. */
+
+:root {
+  --fonte: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* As cores derivadas ficam no mesmo elemento que define --ink e --bg;
+   assim elas são recalculadas quando o data-tempo troca a paleta. */
+body {
+  --bg: #cfe6f7;
+  --ink: #0f2a43;
+  --accent: #b85f00;
+  --muted: color-mix(in srgb, var(--ink) 76%, transparent);
+  --linha: color-mix(in srgb, var(--ink) 20%, transparent);
+}
+
+body[data-tempo="nublado"]    { --bg: #dde2e8; --ink: #1c2733; --accent: #4a5d70; }
+body[data-tempo="neblina"]    { --bg: #e3e8e6; --ink: #20302d; --accent: #55706a; }
+body[data-tempo="chuva"]      { --bg: #c3d3df; --ink: #0e2231; --accent: #1f5f8f; }
+body[data-tempo="neve"]       { --bg: #eef3f8; --ink: #17283a; --accent: #3f78b5; }
+body[data-tempo="tempestade"] { --bg: #232842; --ink: #eceefa; --accent: #f5c542; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--fonte);
+  font-size: 1rem;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--ink);
+  transition: background-color 0.8s ease, color 0.8s ease;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+a { color: inherit; text-underline-offset: 0.2em; }
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------- busca */
+
+.busca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1.25rem;
+}
+
+.campo {
+  position: relative;
+  flex: 1 1 16rem;
+}
+
+.campo input {
+  width: 100%;
+  padding: 0.7rem 0.25rem;
+  font: inherit;
+  font-size: 1.125rem;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--ink);
+  border-radius: 0;
+}
+
+.campo input::placeholder { color: var(--muted); opacity: 1; }
+
+.busca button {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.25rem;
+  font: inherit;
+  font-weight: 500;
+  color: inherit;
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  cursor: pointer;
+}
+
+.busca button[type="submit"] { font-weight: 700; }
+
+.sugestoes {
+  position: absolute;
+  z-index: 5;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 18rem;
+  margin: 0.25rem 0 0;
+  padding: 0.25rem;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--bg);
+  border: 1px solid var(--ink);
+}
+
+.sugestoes li {
+  padding: 0.65rem 0.75rem;
+  cursor: pointer;
+}
+
+.sugestoes li[aria-selected="true"],
+.sugestoes li:hover {
+  background: color-mix(in srgb, var(--ink) 12%, var(--bg));
+}
+
+.sugestoes li.vazio {
+  cursor: default;
+  color: var(--muted);
+}
+
+.sugestoes li.vazio:hover { background: none; }
+
+.aviso {
+  min-height: 1.5rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+}
+
+.aviso[data-erro="true"] {
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--accent);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* -------------------------------------------------------- agora (hero) */
+
+.agora {
+  display: grid;
+  gap: 1.5rem 3rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 48rem) {
+  .agora {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+  }
+}
+
+.local {
+  margin: 0;
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.regiao {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
+.temperatura {
+  /* margem negativa compensa o espaço lateral do próprio desenho do
+     número e alinha o "2" com o nome da cidade acima */
+  margin: 0.5rem 0 0 -0.06em;
+  font-size: clamp(7rem, 30vw, 14rem);
+  font-weight: 200;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.condicao {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.75rem 0 0;
+  font-size: 1.375rem;
+  font-weight: 500;
+}
+
+.icone { font-size: 1.75rem; line-height: 1; }
+
+.hoje {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
+.detalhes {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  gap: 1.25rem 2rem;
+  margin: 0;
+}
+
+@media (min-width: 48rem) {
+  .detalhes {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+.detalhes dt {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.detalhes dd {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ semana */
+
+.semana { margin-top: 3rem; }
+
+.semana h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.dias {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dia {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) minmax(0, 1.3fr) 4.25rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 0;
+  border-top: 1px solid var(--linha);
+}
+
+.dia:last-child { border-bottom: 1px solid var(--linha); }
+
+.dia__nome { font-weight: 700; white-space: nowrap; }
+
+.dia__tempo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.dia__icone { font-size: 1.5rem; line-height: 1; }
+
+.dia__cond {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.dia__faixa {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr 2.25rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dia__min { text-align: right; color: var(--muted); }
+.dia__max { font-weight: 700; }
+
+/* O trilho representa a faixa de temperatura da semana inteira; a barra
+   mostra onde cai a mínima e a máxima de cada dia dentro dela. */
+.trilho {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--linha);
+}
+
+.barra {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.dia__chuva {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 34rem) {
+  .dia {
+    grid-template-columns: 4.1rem 1.75rem minmax(0, 1fr) 4rem;
+    gap: 0.5rem;
+  }
+
+  .dia__faixa { grid-template-columns: 2rem 1fr 2rem; gap: 0.4rem; }
+
+  /* No celular sobra só o ícone; o texto continua para leitores de tela. */
+  .dia__cond {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
+
+/* ------------------------------------------------------------ rodapé */
+
+.rodape {
+  /* mesma largura útil do <main> (56rem menos as margens laterais) */
+  width: calc(100% - 2rem);
+  max-width: 54rem;
+  margin: 0 auto;
+  padding: 1.25rem 0 2rem;
+  border-top: 1px solid var(--linha);
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.rodape p { margin: 0; max-width: 46rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  body { transition: none; }
+}
